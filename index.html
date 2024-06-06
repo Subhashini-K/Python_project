@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Password Hashing</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script>
+        function checkPasswordStrength() {
+            var password = document.getElementById('password').value;
+            fetch('/check', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ password: password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                var strengthText = data.is_secure ? 'Password is secure' : 'Password is not secure';
+                document.getElementById('password-strength').innerText = strengthText;
+            });
+        }
+
+        function copyPassword() {
+            var passwordField = document.getElementById('generated-password');
+            passwordField.select();
+            document.execCommand('copy');
+            alert("Password copied to clipboard!");
+            window.location.href = "/";
+        }
+    </script>
+</head>
+<body>
+    <div class="container">
+        <h1>Password Hashing</h1>
+        <form action="/" method="post">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
+            <label for="password">Enter Password to Hash:</label>
+            <input type="password" id="password" name="password" required onkeyup="checkPasswordStrength()">
+            <button type="submit">Hash Password</button>
+        </form>
+        <div id="password-strength"></div>
+        <a href="{{ url_for('generate') }}">Generate Password</a>
+        {% if hashed_password %}
+        <div class="output">
+            <h2>Hashed Password:</h2>
+            <p>{{ hashed_password }}</p>
+            <h2>Salt:</h2>
+            <p>{{ salt }}</p>
+        </div>
+        {% endif %}
+        {% if request.args.get('generated_password') %}
+        <div class="generated-password">
+            <h2>Generated Password:</h2>
+            <input type="text" id="generated-password" value="{{ request.args.get('generated_password') }}" readonly>
+            <button onclick="copyPassword()">Copy Password</button>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>
